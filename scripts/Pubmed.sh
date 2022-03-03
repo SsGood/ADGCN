@@ -1,0 +1,11 @@
+python main.py \
+--datname pubmed \
+--dropout 0.15   \
+--lr 0.0027      \
+--nbsz 20        \
+--ncaps 5        \
+--nhidden 28     \
+--nlayer 4       \
+--ratio 0.2      \
+--reg 0.0063     \
+--routit 3

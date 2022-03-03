@@ -1,0 +1,11 @@
+python main.py \
+--datname amazon_electronics_photo \
+--dropout 0.5 \
+--lr 0.0029   \
+--nbsz 20     \
+--ncaps 5     \
+--nhidden 14  \
+--nlayer 1    \
+--ratio 0.2   \
+--reg 0.00036 \
+--routit 4

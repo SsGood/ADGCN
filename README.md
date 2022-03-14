@@ -1,5 +1,5 @@
 # ADGCN
-Pytorch Implementation for paper "Adversarial Graph Disentanglement"
+Pytorch Implementation for paper "Adversarial Graph Disentanglement". Note: a well organized version will be coming soon!
 
 ## Introduction
 

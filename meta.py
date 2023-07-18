@@ -13,7 +13,7 @@ min_c = None
 def trial(hyperpm):
     global min_y, min_c
     # Plz set nbsz manually. Maybe a larger value if you have a large memory.
-    cmd = 'python main.py --datname citeseer --nbsz 30'
+    cmd = 'python main.py'
     cmd = 'CUDA_VISIBLE_DEVICES=5 ' + cmd
     for k in hyperpm:
         v = hyperpm[k]
@@ -33,13 +33,22 @@ def trial(hyperpm):
         min_y, min_c = score, cmd
     return {'loss': score, 'status': hyperopt.STATUS_OK}
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--datname', type=str, default='cora',
+                    help='pubmed, cora, citeseer')
+parser.add_argument('--nbsz', type=str, default='20',
+                    help='the numbers of neighborhood ')
+
+args = parser.parse_args()
 
 space = {'lr': hyperopt.hp.loguniform('lr', -8, 0),
          'reg': hyperopt.hp.loguniform('reg', -10, 0),
          'nlayer': hyperopt.hp.quniform('nlayer', 1, 6, 1),
-         'ncaps': 7,
+         'ncaps': 5,
          'nhidden': hyperopt.hp.quniform('nhidden', 2, 32, 2),
          'dropout': hyperopt.hp.uniform('dropout', 0, 1),
-         'routit': 6}
+         'routit': hyperopt.hp.quniform('routit', 2, 8, 1),
+         'datname': args.datname,
+         'nbsz': args.nbsz}
 hyperopt.fmin(trial, space, algo=hyperopt.tpe.suggest, max_evals=1000)
 print('>>>>>>>>>> val=%5.2f%% @ %s' % (-min_y * 100, min_c))

@@ -154,6 +154,8 @@ class EvalHelper:
         self.model = model
         self.neib_sampler = NeibSampler2(graph, self.adj, hyperpm.nbsz).to(dev)
         self.hyperpm = hyperpm
+        self.trn_loss_list = []
+        self.val_loss_list = []
 
     def run_epoch(self, flag = False, end='\n'):
         self.model.train()
@@ -162,6 +164,7 @@ class EvalHelper:
         loss = fn.nll_loss(prob[self.trn_idx], self.targ[self.trn_idx])
         g_loss, d_loss = adv_loss[0], adv_loss[1]
         total_loss = 0.1 * g_loss + loss
+        #total_loss = g_loss + loss
         total_loss.backward()
         self.optmz.step()
         
@@ -170,7 +173,7 @@ class EvalHelper:
         self.optmzD.step()
         
         print('trn-loss: %.4f' % loss.item(), end=end)
-        if flag != False:
+        if flag != 0:
             self.index = soft_degree_sampling_prob(self.graph, embedding)
             self.updated_adj = graph_refine(embedding, self.adj, rate = self.hyperpm.ratio, ncaps = self.hyperpm.ncaps, node_index = self.index)
             self.neib_sampler.update(self.updated_adj)
@@ -179,13 +182,15 @@ class EvalHelper:
 
     def print_trn_acc(self):
         print('trn-', end='')
-        trn_acc, _ = self._print_acc(self.trn_idx, end=' val-')
-        val_acc, _ = self._print_acc(self.val_idx)
+        trn_acc, _, trn_loss = self._print_acc(self.trn_idx, end=' val-')
+        val_acc, _, val_loss = self._print_acc(self.val_idx)
+        self.trn_loss_list.append(trn_loss)
+        self.val_loss_list.append(val_loss)
         return trn_acc, val_acc
 
     def print_tst_acc(self):
         print('tst-', end='')
-        tst_acc, hidden = self._print_acc(self.tst_idx)
+        tst_acc, hidden, _ = self._print_acc(self.tst_idx)
         #np.save('{}_emb.npy'.format(self.hyperpm.datname), hidden.cpu().numpy())
         print('--------------', self.model.param)
         return tst_acc
@@ -198,8 +203,9 @@ class EvalHelper:
         pred = prob.max(1)[1].type_as(targ)
         acc = pred.eq(targ).double().sum() / len(targ)
         acc = acc.item()
+        loss = fn.nll_loss(prob.detach().cpu(), targ.detach().cpu())
         print('acc: %.4f' % acc, end=end)
-        return acc, hidden
+        return acc, hidden, loss
 
     def visualize(self, sav_prefix):
         g = self.graph

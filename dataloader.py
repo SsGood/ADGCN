@@ -6,8 +6,8 @@ import networkx as nx
 import scipy.sparse as spsprs
 from utils import *
 from preprocessing import gen_splits, normalize_attributes
-from data.io import load_dataset
-from data.sparsegraph import SparseGraph
+from io_ import load_dataset
+from sparsegraph import SparseGraph
 
     
 class DataReader:

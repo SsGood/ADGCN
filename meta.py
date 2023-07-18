@@ -3,7 +3,7 @@
 # This is the script I use to tune the hyper-parameters automatically.
 #
 import subprocess
-import argparse
+
 import hyperopt
 
 min_y = 0
@@ -13,15 +13,12 @@ min_c = None
 def trial(hyperpm):
     global min_y, min_c
     # Plz set nbsz manually. Maybe a larger value if you have a large memory.
-    cmd = 'python main.py'
-    #cmd = 'CUDA_VISIBLE_DEVICES=7 ' + cmd
+    cmd = 'python main.py --datname citeseer --nbsz 30'
+    cmd = 'CUDA_VISIBLE_DEVICES=5 ' + cmd
     for k in hyperpm:
         v = hyperpm[k]
         cmd += ' --' + k
-        
-        if isinstance(v, str):
-            cmd += ' %s' %v
-        elif int(v) == v:
+        if int(v) == v:
             cmd += ' %d' % int(v)
         else:
             cmd += ' %g' % float('%.1e' % float(v))
@@ -34,30 +31,15 @@ def trial(hyperpm):
     score = -val
     if score < min_y:
         min_y, min_c = score, cmd
-        f= open("logger-{}.txt".format(args.datname),"a+")
-        f.write('>>>>>>>>>> min val now=%5.2f%% @ %s\n' % (-min_y * 100, min_c))
-        f.close()
     return {'loss': score, 'status': hyperopt.STATUS_OK}
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--datname', type=str, default='cora',
-                    help='pubmed, cora, citeseer')
-parser.add_argument('--nbsz', type=str, default='20',
-                    help='the numbers of neighborhood ')
-parser.add_argument('--flag', type=str, default=True,
-                    help='semi-supervised task ')
-args = parser.parse_args()
 space = {'lr': hyperopt.hp.loguniform('lr', -8, 0),
          'reg': hyperopt.hp.loguniform('reg', -10, 0),
-         'nlayer': hyperopt.hp.quniform('nlayer', 1, 10, 1),
-         'ncaps': 5, #hyperopt.hp.quniform('ncaps', 3, 10, 1),
+         'nlayer': hyperopt.hp.quniform('nlayer', 1, 6, 1),
+         'ncaps': 7,
          'nhidden': hyperopt.hp.quniform('nhidden', 2, 32, 2),
-         'dropout': hyperopt.hp.uniform('dropout', 0, 0.9),
-         'routit': hyperopt.hp.quniform('routit', 3, 9, 1),
-         'ratio': hyperopt.hp.quniform('ratio', 0, 0.5, 0.05),
-        'datname': args.datname,
-        'nbsz': args.nbsz,
-        'flag': args.flag}
+         'dropout': hyperopt.hp.uniform('dropout', 0, 1),
+         'routit': 6}
 hyperopt.fmin(trial, space, algo=hyperopt.tpe.suggest, max_evals=1000)
 print('>>>>>>>>>> val=%5.2f%% @ %s' % (-min_y * 100, min_c))

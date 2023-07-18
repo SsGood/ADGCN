@@ -103,7 +103,7 @@ def train_and_eval(datadir, datname, hyperpm):
                 neib_sav.copy_(agent.neib_sampler.nb_all)
                 if cur_val_acc >= 0.7:
                     flag = hyperpm.flag
-                    if flag != False:
+                    if flag != 0:
                         print('---------------graph refined--------------------')
             else:
                 flag = False
@@ -118,6 +118,7 @@ def train_and_eval(datadir, datname, hyperpm):
         
         best_val_acc_list.append(best_val_acc)
         best_tst_acc_list.append(tst_acc)
+        np.savez('{}_loss.npz'.format(datname), trn_loss = agent.trn_loss_list, val_loss = agent.val_loss_list)
         if num >= 9 and np.max(best_val_acc_list)<0.6:
             break
     return np.mean(best_val_acc_list), np.mean(best_tst_acc_list)
@@ -154,10 +155,11 @@ def main(args_str=None):
                         help='val_test flag')
     parser.add_argument('--seed', type=int, default=23,
                         help='random seed')
-    parser.add_argument('--flag', type=str, default=False,
+    parser.add_argument('--flag', type=int, default=1,
                         help='Graph refining or not')
     parser.add_argument('--ratio', type=float, default=0.5,
                         help='Update ratio of adj')
+    torch.set_num_threads(10)
     if args_str is None:
         args = parser.parse_args()
     else:

@@ -42,10 +42,15 @@ def train_stopping_split(
 def gen_splits(
         labels: np.ndarray, idx_split_args: Dict[str, int],
         test: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    
     all_idx = np.arange(len(labels))
+    if -1 in labels:
+        print('deleting the nodes without label.')
+        all_idx = all_idx[labels != -1]
     known_idx, unknown_idx = known_unknown_split(
             all_idx, idx_split_args['nknown'])
     _, cnts = np.unique(labels[known_idx], return_counts=True)
+        
     stopping_split_args = copy.copy(idx_split_args)
     del stopping_split_args['nknown']
     train_idx, stopping_idx = train_stopping_split(

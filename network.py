@@ -141,7 +141,7 @@ class CapsuleNet(nn.Module):  # CapsuleNet = DisenGCN
         else:
             raise AssertionError("Plz specify the type of mode")
         total_loss  = adv_loss + cls_loss
-        
+#         total_loss  = cls_loss
         return total_loss
     
 # class RoutingLayer(nn.Module):
